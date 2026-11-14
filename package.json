@@ -1,5 +1,0 @@
-{
-  "name": "dmr-pool-empire",
-  "private": true,
-  "scripts": { "test": "node --test tests/engine.test.js" }
-}
