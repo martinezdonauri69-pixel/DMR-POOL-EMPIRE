@@ -41,3 +41,29 @@ input[type=text]{width:100%;font:inherit;font-size:20px;padding:12px;border-radi
 label.set{display:flex;justify-content:space-between;align-items:center;gap:10px;margin:12px 0}
 .big-text,.big-text #box{font-size:19px}
 @media (prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
+/* ===== LOBBY ===== */
+#top{position:fixed;top:0;left:0;right:0;z-index:5;display:flex;align-items:center;gap:8px;padding:calc(env(safe-area-inset-top) + 8px) 12px 8px}
+.mini{font-weight:900;font-size:15px;line-height:1;color:var(--gold);text-shadow:0 2px 0 #7a3a05,0 3px 8px #0008;letter-spacing:1px}.mini b{display:block;color:var(--cyan);text-shadow:0 2px 0 #0a5a80,0 3px 8px #0008}
+.chipb{display:flex;align-items:center;gap:8px;border:2px solid #ffffff55;background:var(--glass);color:#fff;border-radius:999px;padding:4px 14px 4px 4px;cursor:pointer;font:inherit}
+.av{width:36px;height:36px;border-radius:50%;display:grid;place-items:center;font-weight:900;font-size:18px;background:linear-gradient(#ffe27a,#ff8a3c);color:#4a2500;border:2px solid #fff}
+.tx{display:grid;text-align:left;line-height:1.1}.tx b{font-size:14px}.tx small{font-size:12px;opacity:.85}
+.coin{background:var(--glass);border:2px solid #ffffff55;border-radius:999px;padding:8px 12px;font-weight:900;font-size:14px}
+.arrow{position:fixed;top:40%;z-index:5;width:46px;height:64px;border:0;border-radius:16px;font-size:38px;line-height:1;color:#fff;cursor:pointer;background:linear-gradient(#ffffff40,#ffffff18);backdrop-filter:blur(4px);box-shadow:0 4px 0 #0004,inset 0 1px 0 #fff6;transition:transform .12s,opacity .2s}
+.arrow.l{left:6px}.arrow.r{right:6px}.arrow:active{transform:scale(.9)}.arrow:disabled{opacity:.25;cursor:default}
+#dock{position:fixed;left:0;right:0;bottom:0;z-index:5;padding:14px 14px calc(env(safe-area-inset-bottom) + 12px);background:linear-gradient(transparent,#0a1040dd 28%);display:grid;gap:10px;max-width:640px;margin:0 auto}
+.info{cursor:pointer;background:var(--glass);border:2px solid #ffffff33;border-radius:20px;padding:12px 14px;backdrop-filter:blur(6px)}
+.line{display:flex;align-items:center;gap:8px;flex-wrap:wrap}.line h2{margin:0;font-size:clamp(18px,5vw,24px);flex:1;min-width:0}
+.badge{font-size:12px;font-weight:900;padding:3px 9px;border-radius:999px;background:#ffffff26}.badge.lv{background:linear-gradient(#ffe27a,#ff9a2a);color:#4a2500}
+#wdesc{margin:4px 0;font-size:14px;opacity:.9}.meta{justify-content:space-between;font-size:13px;font-weight:700}.st{font-weight:900}
+.bar.xp{height:7px;margin-top:2px}.bar.xp i{background:linear-gradient(90deg,#ff5fa2,#ffc83d)}
+.play{font:inherit;font-size:24px;font-weight:900;letter-spacing:2px;color:#4a2500;border:0;border-radius:20px;padding:14px;cursor:pointer;background:linear-gradient(#fff08a,var(--gold) 50%,#f08a00);box-shadow:0 6px 0 #9a5a00,0 12px 22px #0007,inset 0 2px 0 #fff9;animation:pulse 2s ease-in-out infinite}
+.play:active{transform:translateY(5px);box-shadow:0 1px 0 #9a5a00}.play:disabled{animation:none;filter:grayscale(1) brightness(.75)}
+@keyframes pulse{50%{transform:scale(1.025)}}
+nav{display:grid;grid-template-columns:repeat(4,1fr);gap:8px}
+nav button{font:inherit;font-size:12px;font-weight:800;color:#fff;display:grid;gap:2px;justify-items:center;padding:8px 4px;border:0;border-radius:14px;cursor:pointer;background:linear-gradient(#5d78ff,#2f45c4);box-shadow:0 4px 0 #17247a;min-height:52px}
+nav button i{font-style:normal;font-size:20px}nav button:active{transform:translateY(3px);box-shadow:0 1px 0 #17247a}nav button:disabled{opacity:.4}
+.wgrid{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.wcard{position:relative;border-radius:16px;padding:12px;min-height:110px;cursor:pointer;border:3px solid #ffffff44;text-align:left;color:#fff;font:inherit;overflow:hidden;display:grid;align-content:end;gap:2px}
+.wcard.sel{border-color:var(--gold)}.wcard.lk{filter:grayscale(.8) brightness(.7)}.wcard em{position:absolute;top:6px;right:10px;font-style:normal;font-size:28px}
+.wcard b{font-size:14px}.wcard small{font-size:11px}
+@media (max-height:640px){#wdesc{display:none}.play{padding:10px;font-size:20px}}
