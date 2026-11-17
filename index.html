@@ -1,0 +1,33 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>ENGLISH WORLD 3D</title>
+<link rel="stylesheet" href="css/style.css">
+<script type="importmap">{"imports":{"three":"https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js"}}</script>
+</head>
+<body>
+<canvas id="c"></canvas>
+<section id="title" class="screen">
+  <h1 class="logo">ENGLISH<br><span>WORLD 3D</span></h1>
+  <p class="tag">Aprende inglés de A1 a C2 viajando por 8 mundos</p>
+  <div class="menu">
+    <button class="btn big" id="bStart">COMENZAR</button>
+    <button class="btn" id="bCont">CONTINUAR</button>
+    <button class="btn alt" id="bProf">PERFIL</button>
+    <button class="btn alt" id="bSet">CONFIGURACIÓN</button>
+  </div>
+</section>
+<header id="hud" class="hidden">
+  <button class="round" id="hHome" title="Inicio">⌂</button>
+  <div class="pill" id="hXp"></div><div class="pill" id="hCoin"></div><div class="pill" id="hStreak"></div>
+  <span class="grow"></span>
+  <button class="round" id="hProf" title="Perfil">★</button>
+  <button class="round" id="hSet" title="Configuración">⚙</button>
+</header>
+<div id="hint" class="hidden">Toca una isla para entrar a su mundo</div>
+<div id="modal" class="hidden"><div id="box"></div></div>
+<script type="module" src="js/main.js"></script>
+</body>
+</html>
