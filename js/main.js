@@ -12,75 +12,110 @@ const lessonsOf = id => LESSONS[id] || [];
 const worldDone = id => lessonsOf(id).length > 0 && lessonsOf(id).every(l => S.done[l.id]);
 const worldUnlocked = id => id === 1 || worldDone(id - 1);
 const lessonUnlocked = (id, k) => worldUnlocked(id) && (k === 0 || S.done[lessonsOf(id)[k - 1].id]);
-function currentWorld() { let c = 1; WORLDS.forEach(w => { if (worldUnlocked(w.id) && !worldDone(w.id)) c = Math.min(c === 1 && worldDone(1) ? w.id : c, w.id); }); return WORLDS.find(w => worldUnlocked(w.id) && !worldDone(w.id))?.id || 8; }
+const currentWorld = () => WORLDS.find(w => worldUnlocked(w.id) && !worldDone(w.id))?.id || 8;
+const CARD = ['#2f9e44,#8be36b', '#e0409a,#ffc2ea', '#d98a2a,#ffe08a', '#3b9a55,#ffb86b', '#3b6fd0,#9fd0ff', '#2bb3a0,#c6a8ff', '#4a3fd0,#9fe8ff', '#4a5a78,#9fb7cc'];
+let view = currentWorld() - 1;
 
-const scene = initScene($('c'), WORLDS, id => { sfx('click'); if (!$('hud').classList.contains('hidden')) openWorld(id); });
-function refresh() {
-  $('hXp').textContent = `⭐ ${S.xp} XP · Nv ${lvl()}`; $('hCoin').textContent = `🪙 ${S.coins}`; $('hStreak').textContent = `🔥 ${S.streak}`;
-  scene.setState(WORLDS.map(w => worldUnlocked(w.id)), currentWorld() - 1, WORLDS.map(w => worldDone(w.id)));
-  $('bCont').disabled = !S.started;
-  document.body.classList.toggle('big-text', S.settings.big);
+function fixLock() { return !worldUnlocked(view + 1); }
+function goTo(i, dir) { i = Math.max(0, Math.min(7, i)); const d = dir || (i >= view ? 1 : -1); view = i; scene.show(view, d, fixLock()); sfx('click'); lobby(); }
+const scene = initScene($('c'), d => goTo(view + d, d));
+
+function lobby() {
+  const w = WORLDS[view], id = w.id, ls = lessonsOf(id), un = worldUnlocked(id), dn = worldDone(id), n = ls.filter(l => S.done[l.id]).length, stars = ls.reduce((a, l) => a + (S.done[l.id] || 0), 0);
+  $('tAv').textContent = (S.name || 'P')[0].toUpperCase(); $('tRank').textContent = `${rank()} · Nv ${lvl()}`; $('tXp').textContent = `${S.xp} XP`; $('tCoin').textContent = `🪙 ${S.coins}`;
+  $('wnum').textContent = `MUNDO ${id}`; $('wtitle').textContent = w.name; $('wlvl').textContent = w.lvl;
+  $('wdesc').textContent = un ? w.desc : `🔒 Completa el Mundo ${id - 1} (mínimo 70% en cada lección) para entrar.`;
+  const pct = ls.length ? Math.round(n / ls.length * 100) : 0;
+  $('wmeta').textContent = ls.length ? `${n}/${ls.length} lecciones · ${pct}%` : 'Lecciones en construcción';
+  $('wstat').textContent = !un ? '🔒 Bloqueado' : dn ? '✓ Completado' : ls.length ? '● Disponible' : '🚧 Próximamente';
+  $('wbar').style.width = pct + '%'; $('wxp').style.width = (ls.length ? Math.round(stars / (ls.length * 3) * 100) : 0) + '%';
+  $('bPlay').textContent = !un ? '🔒 BLOQUEADO' : '▶ JUGAR'; $('bPlay').disabled = !un;
+  $('aL').disabled = view === 0; $('aR').disabled = view === 7; $('nCont').disabled = !S.started;
+  document.body.classList.toggle('big-text', S.settings.big); scene.setLocked(!un);
 }
 function modal(build) { const b = $('box'); b.replaceChildren(); build(b); $('modal').classList.remove('hidden'); }
-function close() { $('modal').classList.add('hidden'); speechSynthesis?.cancel(); refresh(); }
+function close() { $('modal').classList.add('hidden'); speechSynthesis?.cancel(); lobby(); }
 const closeBtn = () => el('button', 'btn alt', 'Cerrar', () => { sfx('click'); close(); });
+const rowWith = (...bs) => { const r = el('div', 'row'); r.append(...bs); return r; };
 
-function openWorld(id) {
+function startLesson(l, wid) {
+  S.started = true; touchStreak(); save();
+  modal(b => runLesson(l, b, first => {
+    const was = S.done[l.id] && !first; close();
+    if (first && worldDone(wid)) { sfx('unlock'); if (wid < 8) goTo(wid, 1); modal(b2 => { b2.append(el('h2', '', '🎉 ¡Mundo completado!'), el('p', '', wid < 8 ? `Se desbloqueó el Mundo ${wid + 1}: ${WORLDS[wid].name}.` : '¡Terminaste todos los mundos!'), rowWith(closeBtn())); }); } void was;
+  }));
+}
+// JUGAR: va directo a la siguiente lección pendiente del mundo que se ve en pantalla
+function play() {
+  const id = view + 1, ls = lessonsOf(id);
+  if (!worldUnlocked(id)) return;
+  if (!ls.length) return modal(b => b.append(el('h2', '', WORLDS[view].name), el('p', '', '🚧 Este mundo se construye en la Fase 4. Ya está conectado y se desbloqueará con tu progreso; sus lecciones se cargan en js/data.js.'), rowWith(closeBtn())));
+  const k = ls.findIndex(l => !S.done[l.id]);
+  if (k >= 0) return startLesson(ls[k], id);
+  modal(b => { b.append(el('h2', '', '✓ Mundo completado'), el('p', '', 'Puedes repetir una lección para ganar más estrellas' + (id < 8 ? ' o pasar al siguiente mundo.' : '.')));
+    b.append(rowWith(el('button', 'btn alt', 'Repetir lecciones', () => lessons(id)), ...(id < 8 ? [el('button', 'btn', 'Siguiente mundo ›', () => { close(); goTo(view + 1, 1); })] : []), closeBtn())); });
+}
+// Lista de lecciones (para volver atrás y repetir cualquier lección ya desbloqueada)
+function lessons(id) {
   const w = WORLDS[id - 1];
   modal(b => {
-    b.append(el('h2', '', `Mundo ${w.id}: ${w.name}`), el('small', '', `Nivel ${w.lvl} · ${w.desc}`));
-    if (!worldUnlocked(id)) { b.append(el('p', '', `🔒 Bloqueado. Completa todas las lecciones del Mundo ${id - 1} con al menos 70% para entrar.`)); b.append(el('div', 'row')); b.lastChild.append(closeBtn()); return; }
-    const ls = lessonsOf(id);
-    if (!ls.length) b.append(el('p', '', '🚧 Este mundo se construye en la Fase 4. La estructura y el desbloqueo ya funcionan; solo falta cargar sus lecciones en js/data.js.'));
-    ls.forEach((l, k) => {
-      const open = lessonUnlocked(id, k), s = S.done[l.id] || 0;
-      const r = el('div', 'lrow' + (open ? '' : ' lock')); r.append(el('div', '', `${k + 1}. ${l.title}\n`)); r.firstChild.append(el('small', '', l.goal));
-      r.append(el('span', '', open ? ('⭐'.repeat(s) + '☆'.repeat(3 - s)) : '🔒'));
-      r.onclick = () => { if (!open) return; sfx('click'); S.started = true; touchStreak(); save(); startLesson(l, id); }; b.append(r);
+    b.append(el('h2', '', `Mundo ${id}: ${w.name}`), el('small', '', `Nivel ${w.lvl}`));
+    lessonsOf(id).forEach((l, k) => {
+      const open = lessonUnlocked(id, k), s = S.done[l.id] || 0, r = el('div', 'lrow' + (open ? '' : ' lock'));
+      const t = el('div', '', `${k + 1}. ${l.title}`); t.append(document.createElement('br'), el('small', '', l.goal)); r.append(t, el('span', '', open ? '⭐'.repeat(s) + '☆'.repeat(3 - s) : '🔒'));
+      r.onclick = () => { if (open) { sfx('click'); startLesson(l, id); } }; b.append(r);
     });
-    const row = el('div', 'row'); row.append(closeBtn()); b.append(row);
+    b.append(rowWith(closeBtn()));
   });
 }
-function startLesson(l, wid) {
-  modal(b => runLesson(l, b, first => { const was = worldDone(wid); close(); if (first && worldDone(wid) && !was) { sfx('unlock'); modal(b2 => { b2.append(el('h2', '', '🎉 ¡Mundo completado!'), el('p', '', wid < 8 ? `Se desbloqueó el Mundo ${wid + 1}.` : '¡Terminaste todos los mundos!')); const r = el('div', 'row'); r.append(closeBtn()); b2.append(r); }); } else openWorld(wid); }));
+function openWorlds() {
+  modal(b => {
+    b.append(el('h2', '', '🗺 Mundos')); const g = el('div', 'wgrid');
+    WORLDS.forEach((w, i) => {
+      const un = worldUnlocked(w.id), ls = lessonsOf(w.id), n = ls.filter(l => S.done[l.id]).length, c = el('button', 'wcard' + (un ? '' : ' lk') + (i === view ? ' sel' : ''));
+      c.style.background = `linear-gradient(160deg,${CARD[i].split(',')[0]},${CARD[i].split(',')[1]})`;
+      c.append(el('em', '', un ? (worldDone(w.id) ? '✓' : ['🏫', '🦁', '📚', '🏘', '✈', '💬', '🚀', '🏢'][i]) : '🔒'), el('b', '', `${w.id}. ${w.name}`), el('small', '', `${w.lvl} · ${ls.length ? `${n}/${ls.length} lecciones` : 'Próximamente'}`), el('small', '', un ? (worldDone(w.id) ? 'Completado' : 'Disponible') : `Completa el Mundo ${w.id - 1}`));
+      c.onclick = () => { close(); goTo(i); }; g.append(c);
+    });
+    b.append(g, rowWith(closeBtn()));
+  });
 }
 function openProfile() {
   modal(b => {
     const total = WORLDS.reduce((n, w) => n + lessonsOf(w.id).length, 0), done = Object.keys(S.done).length;
     const learned = Object.values(S.words).filter(v => v.ok >= 2 && v.ok > v.bad).length, weak = Object.values(S.words).filter(v => v.bad > v.ok).length;
-    b.append(el('h2', '', '🧑 ' + S.name));
-    const inp = el('input'); inp.type = 'text'; inp.value = S.name; inp.maxLength = 16; inp.onchange = () => { S.name = inp.value.trim() || 'Player'; save(); openProfile(); }; b.append(inp);
-    const rows = [['Rango', rank()], ['Nivel', lvl()], ['Experiencia', S.xp + ' XP'], ['Mundos completados', WORLDS.filter(w => worldDone(w.id)).length + '/8'], ['Lecciones terminadas', done], ['Palabras aprendidas', learned], ['Palabras por repasar', weak], ['Progreso del curso', Math.round(done / total * 100) + '% (contenido disponible)'], ['Tiempo de aprendizaje', Math.round(S.time / 60) + ' min'], ['Racha diaria', S.streak + ' días']];
-    rows.forEach(([a, c]) => { const s = el('div', 'stat'); s.append(el('span', '', a), el('b', '', String(c))); b.append(s); });
+    const head = el('div', 'line'); const av = el('span', 'av', (S.name || 'P')[0].toUpperCase()); av.style.cssText = 'width:64px;height:64px;font-size:32px'; head.append(av, el('h2', '', S.name)); b.append(head);
+    const inp = el('input'); inp.type = 'text'; inp.value = S.name; inp.maxLength = 16; inp.onchange = () => { S.name = inp.value.trim() || 'Player'; save(); openProfile(); lobby(); }; b.append(inp);
+    [['Rango', rank()], ['Nivel', lvl()], ['Experiencia', S.xp + ' XP'], ['Monedas', '🪙 ' + S.coins], ['Mundos completados', WORLDS.filter(w => worldDone(w.id)).length + '/8'], ['Lecciones realizadas', done + '/' + total], ['Palabras aprendidas', learned], ['Palabras por repasar', weak], ['Tiempo de aprendizaje', Math.round(S.time / 60) + ' min'], ['Racha diaria', S.streak + ' días']].forEach(([a, c]) => { const s = el('div', 'stat'); s.append(el('span', '', a), el('b', '', String(c))); b.append(s); });
     b.append(el('h3', '', 'Habilidades'));
-    [['Lectura', 'read'], ['Escritura', 'write'], ['Escucha', 'listen'], ['Gramática', 'grammar'], ['Pronunciación (Fase 5)', 'speak'], ['Conversación (Fase 5)', 'talk']].forEach(([n, k]) => {
-      const [a, t] = S.skills[k], p = t ? Math.round(a / t * 100) : 0; const s = el('div', 'stat'); s.append(el('span', '', n), el('b', '', p + '%')); const bar = el('div', 'bar'); const f = el('i'); f.style.width = p + '%'; bar.append(f); b.append(s, bar);
-    });
-    const r = el('div', 'row'); r.append(closeBtn()); b.append(r);
+    [['Lectura', 'read'], ['Escritura', 'write'], ['Escucha', 'listen'], ['Gramática', 'grammar'], ['Pronunciación (Fase 5)', 'speak'], ['Conversación (Fase 5)', 'talk']].forEach(([n, k]) => { const [a, t] = S.skills[k], p = t ? Math.round(a / t * 100) : 0, s = el('div', 'stat'); s.append(el('span', '', n), el('b', '', p + '%')); const bar = el('div', 'bar'), f = el('i'); f.style.width = p + '%'; bar.append(f); b.append(s, bar); });
+    b.append(rowWith(closeBtn()));
   });
 }
 function openSettings() {
   modal(b => {
-    b.append(el('h2', '', '⚙ Configuración'));
-    const mk = (txt, input) => { const l = el('label', 'set'); l.append(el('span', '', txt), input); b.append(l); return input; };
+    b.append(el('h2', '', '⚙ Ajustes'));
+    const mk = (txt, input) => { const l = el('label', 'set'); l.append(el('span', '', txt), input); b.append(l); };
     const rg = (min, max, step, v, f) => { const i = el('input'); i.type = 'range'; Object.assign(i, { min, max, step, value: v }); i.oninput = () => { f(+i.value); save(); }; return i; };
     const ck = (v, f) => { const i = el('input'); i.type = 'checkbox'; i.checked = v; i.onchange = () => { f(i.checked); save(); }; return i; };
     mk('Volumen', rg(0, 1, .1, S.settings.vol, v => S.settings.vol = v));
     mk('Música ambiental', ck(S.settings.music, v => { S.settings.music = v; music(v); }));
     mk('Efectos de sonido', ck(S.settings.fx, v => S.settings.fx = v));
-    mk('Velocidad del audio', rg(.5, 1.3, .1, S.settings.rate, v => { S.settings.rate = v; speak('Hello, nice to meet you'); }));
-    mk('Mostrar traducciones', ck(S.settings.subs, v => S.settings.subs = v));
-    mk('Texto grande (accesibilidad)', ck(S.settings.big, v => { S.settings.big = v; refresh(); }));
-    const q = el('select'); ['high', 'low'].forEach(o => { const op = el('option', '', o === 'high' ? 'Alta' : 'Baja (más rápido)'); op.value = o; q.append(op); }); q.value = S.settings.quality; q.onchange = () => { S.settings.quality = q.value; scene.setQuality(q.value); save(); }; mk('Calidad gráfica', q);
-    const r = el('div', 'row'); r.append(el('button', 'btn', 'Borrar progreso', () => { if (confirm('¿Borrar todo tu progreso?')) resetAll(); }), closeBtn()); b.append(r);
+    mk('Velocidad de pronunciación', rg(.5, 1.3, .1, S.settings.rate, v => { S.settings.rate = v; speak('Hello, nice to meet you'); }));
+    mk('Subtítulos (traducción)', ck(S.settings.subs, v => S.settings.subs = v));
+    mk('Texto grande', ck(S.settings.big, v => { S.settings.big = v; lobby(); }));
+    const lg = el('select'); const o = el('option', '', 'Español'); o.value = 'es'; lg.append(o); mk('Idioma de traducción', lg);
+    const q = el('select'); [['high', 'Alta'], ['low', 'Baja (más rápido)']].forEach(([v, t]) => { const op = el('option', '', t); op.value = v; q.append(op); }); q.value = S.settings.quality; q.onchange = () => { S.settings.quality = q.value; scene.setQuality(q.value); save(); }; mk('Calidad gráfica', q);
+    b.append(rowWith(el('button', 'btn', 'Borrar progreso', () => { if (confirm('¿Borrar todo tu progreso?')) resetAll(); }), closeBtn()));
   });
 }
-function toMap() { $('title').classList.add('hidden'); $('hud').classList.remove('hidden'); $('hint').classList.remove('hidden'); refresh(); }
-$('bStart').onclick = () => { sfx('click'); toMap(); };
-$('bCont').onclick = () => { sfx('click'); toMap(); openWorld(currentWorld()); };
-$('bProf').onclick = $('hProf').onclick = () => { sfx('click'); openProfile(); };
-$('bSet').onclick = $('hSet').onclick = () => { sfx('click'); openSettings(); };
-$('hHome').onclick = () => { sfx('click'); $('hud').classList.add('hidden'); $('hint').classList.add('hidden'); $('title').classList.remove('hidden'); refresh(); };
-scene.setQuality(S.settings.quality); refresh();
+$('bPlay').onclick = () => { sfx('click'); play(); };
+$('nCont').onclick = () => { sfx('click'); const c = currentWorld() - 1; if (c !== view) goTo(c); play(); };
+$('nWorlds').onclick = () => { sfx('click'); openWorlds(); };
+$('nProf').onclick = $('tProf').onclick = () => { sfx('click'); openProfile(); };
+$('nSet').onclick = () => { sfx('click'); openSettings(); };
+$('aL').onclick = () => goTo(view - 1, -1); $('aR').onclick = () => goTo(view + 1, 1);
+$('info').onclick = () => { if (worldUnlocked(view + 1) && lessonsOf(view + 1).length) { sfx('click'); lessons(view + 1); } };
+scene.setQuality(S.settings.quality); scene.show(view, 1, fixLock()); lobby();
 document.addEventListener('pointerdown', () => { if (S.settings.music) music(true); }, { once: true });
 setInterval(() => { if (S.started && !document.hidden) { S.time += 10; save(); } }, 10000);
