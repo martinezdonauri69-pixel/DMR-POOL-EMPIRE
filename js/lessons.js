@@ -56,11 +56,20 @@ export function runLesson(L, wi, root, onExit) {
   const pw = (n, from = L.words) => { const wk = from.filter(w => S.words[w[0]] && S.words[w[0]].bad > S.words[w[0]].ok); return [...sh(wk), ...sh(from.filter(w => !wk.includes(w)))].slice(0, n); };
   const explain = w => `“${w[0]}” significa “${w[1]}”.`;
   function rec(w, good, sk) {
+    mood(good);
     if (w) { const x = S.words[w] || (S.words[w] = { ok: 0, bad: 0 }); good ? x.ok++ : x.bad++; }
     if (sk) { const k = S.skills[sk]; k[1]++; if (good) k[0]++; }
     run.n++; if (good) run.ok++; else if (w) run.wrong.add(w); save();
   }
-  function guideBox(st) { const g = h('div', 'guide'), av = h('div', 'gav', gem), bub = h('div', 'bub'); g.append(av, bub); st.append(g);
+  let GB = null, streak = 0;
+  const SAD = ['Ay, casi… ¡no pasa nada!', 'Uy, ese era difícil. ¡Tú puedes!', 'Oh no… ¡pero así se aprende!', 'Mmm, no era… ¡yo creo en ti!'];
+  const JOY = ['¡Cinco seguidas! ¡Estoy tan feliz que voy a bailar! 💃', '¡Wow, qué racha! Me haces muy feliz 🎉', '¡Increíble! ¡Estoy orgulloso de ti! 🌟', '¡Eres un campeón! ¡Casi lloro de la emoción! 🥹'];
+  function mood(good) {
+    if (!GB) return; const { av, bub } = GB;
+    if (good) { streak++; if (streak % 5 === 0) { bub.textContent = pick(JOY); av.classList.remove('sad'); av.classList.add('happy'); clearTimeout(av._m); av._m = setTimeout(() => av.classList.remove('happy'), 3200); } }
+    else { streak = 0; bub.textContent = pick(SAD) + ' ' + bub.textContent; av.classList.remove('happy'); av.classList.add('sad'); clearTimeout(av._m); av._m = setTimeout(() => av.classList.remove('sad'), 2800); }
+  }
+  function guideBox(st) { const g = h('div', 'guide'), av = h('div', 'gav', gem), bub = h('div', 'bub'); g.append(av, bub); st.append(g); GB = { av, bub }; av.onanimationend = () => av.classList.remove('jump');
     return t => { bub.textContent = t; av.classList.remove('jump'); void av.offsetWidth; av.classList.add('jump'); }; }
   const area = st => { const a = h('div', 'area'); st.append(a); return a; };
   function topbar(n) {
@@ -117,9 +126,10 @@ export function runLesson(L, wi, root, onExit) {
       run.won = hp <= 0; if (run.won) bo.textContent = '💥'; else say('El jefe resistió… ¡repasa y vuelve a intentarlo!'); await wait(1200); }
   };
   async function card(t) { const c = h('div', 'titlecard'); c.append(h('div', 'ic', TITLE[t][0]), h('div', '', TITLE[t][1]), h('small', '', TITLE[t][2])); root.append(c); sfx('click'); await wait(1300); c.remove(); }
+  const INTRO = ['¡Hello, amigo! Hoy vamos a jugar con el inglés. ¡Será divertido!', 'Psst… ¿listo para la aventura? ¡Yo te acompaño en cada paso!', '¡Qué emoción! Hoy nos vamos a reír y a aprender juntos.', '¿Preparado? Si te equivocas no pasa nada, ¡así se aprende!', '¡Vamos, campeón! Hoy el inglés será pan comido.'];
   function intro() {
     root.className = 'clear'; root.replaceChildren(); const t = h('div', 'ltop'); t.append(h('button', 'x', '✕', () => { alive = false; root.replaceChildren(); onExit(false); })); root.append(t);
-    const c = h('div', 'intro'); c.append(h('div', 'gav big', gem), h('div', 'bub', `${gname}: “Hello! Let’s learn together!”`), h('h1', '', L.title), h('div', 'badges', ''), h('p', '', '🎯 ' + L.goal));
+    const c = h('div', 'intro'); c.append(h('div', 'gav big', gem), h('div', 'bub', `${gname}: “${INTRO[[...L.id].reduce((a, c) => a + c.charCodeAt(0), 0) % INTRO.length]}”`), h('h1', '', L.title), h('div', 'badges', ''), h('p', '', '🎯 Aprende a ' + L.goal[0].toLowerCase() + L.goal.slice(1).replace(/ y (?=\p{L}+(ar|er|ir|arte|erte|irte)\b)/iu, ' y a ')));
     c.children[3].append(h('span', 'badge lv', 'Nivel ' + W.lvl), h('span', 'badge', 'Mundo ' + W.id), h('span', 'badge', '⚔ 5 desafíos'), h('span', 'badge', '🎁 hasta ⭐⭐⭐ + XP + 🪙'));
     c.append(h('button', 'play', 'COMENZAR AVENTURA', () => { sfx('click'); start(); })); root.append(c); speak('Hello! Let us begin the adventure!');
   }
