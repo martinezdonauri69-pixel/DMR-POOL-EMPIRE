@@ -41,11 +41,15 @@ const closeBtn = () => el('button', 'btn alt', 'Cerrar', () => { sfx('click'); c
 const rowWith = (...bs) => { const r = el('div', 'row'); r.append(...bs); return r; };
 
 function startLesson(l, wid) {
-  S.started = true; touchStreak(); save();
-  modal(b => runLesson(l, b, first => {
-    const was = S.done[l.id] && !first; close();
-    if (first && worldDone(wid)) { sfx('unlock'); if (wid < 8) goTo(wid, 1); modal(b2 => { b2.append(el('h2', '', '🎉 ¡Mundo completado!'), el('p', '', wid < 8 ? `Se desbloqueó el Mundo ${wid + 1}: ${WORLDS[wid].name}.` : '¡Terminaste todos los mundos!'), rowWith(closeBtn())); }); } void was;
-  }));
+  S.started = true; touchStreak(); save(); const root = $('lesson');
+  document.body.classList.add('in-lesson'); $('fade').classList.add('go'); scene.zoom(true); sfx('unlock');
+  setTimeout(() => {
+    $('fade').classList.remove('go'); root.classList.remove('hidden');
+    runLesson(l, wid - 1, root, first => {
+      root.classList.add('hidden'); root.replaceChildren(); scene.zoom(false); document.body.classList.remove('in-lesson'); lobby();
+      if (first && worldDone(wid)) { sfx('unlock'); if (wid < 8) goTo(wid, 1); modal(b2 => { b2.append(el('h2', '', '🎉 ¡Mundo completado!'), el('p', '', wid < 8 ? `Se desbloqueó el Mundo ${wid + 1}: ${WORLDS[wid].name}.` : '¡Terminaste todos los mundos!'), rowWith(closeBtn())); }); }
+    });
+  }, 1300);
 }
 // JUGAR: va directo a la siguiente lección pendiente del mundo que se ve en pantalla
 function play() {
@@ -65,7 +69,7 @@ function lessons(id) {
     lessonsOf(id).forEach((l, k) => {
       const open = lessonUnlocked(id, k), s = S.done[l.id] || 0, r = el('div', 'lrow' + (open ? '' : ' lock'));
       const t = el('div', '', `${k + 1}. ${l.title}`); t.append(document.createElement('br'), el('small', '', l.goal)); r.append(t, el('span', '', open ? '⭐'.repeat(s) + '☆'.repeat(3 - s) : '🔒'));
-      r.onclick = () => { if (open) { sfx('click'); startLesson(l, id); } }; b.append(r);
+      r.onclick = () => { if (open) { sfx('click'); close(); startLesson(l, id); } }; b.append(r);
     });
     b.append(rowWith(closeBtn()));
   });
