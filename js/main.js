@@ -18,7 +18,9 @@ let view = currentWorld() - 1;
 
 function fixLock() { return !worldUnlocked(view + 1); }
 function goTo(i, dir) { i = Math.max(0, Math.min(7, i)); const d = dir || (i >= view ? 1 : -1); view = i; scene.show(view, d, fixLock()); sfx('click'); lobby(); }
-const scene = initScene($('c'), d => goTo(view + d, d));
+let scene;
+try { scene = initScene($('c'), d => goTo(view + d, d)); }
+catch (e) { console.error(e); window.showErr && showErr('El 3D no pudo iniciar (' + e.message + '). Prueba otro navegador o baja la calidad.'); scene = { show() {}, setLocked() {}, setQuality() {} }; }
 
 function lobby() {
   const w = WORLDS[view], id = w.id, ls = lessonsOf(id), un = worldUnlocked(id), dn = worldDone(id), n = ls.filter(l => S.done[l.id]).length, stars = ls.reduce((a, l) => a + (S.done[l.id] || 0), 0);
