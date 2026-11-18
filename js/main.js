@@ -1,8 +1,8 @@
 import { WORLDS, LESSONS } from './data.js';
 import { S, save, resetAll, touchStreak } from './storage.js';
 import { sfx, music, speak } from './audio.js';
-import { initScene } from './scene.js?v=6';
-import { runLesson } from './lessons.js';
+import { initScene } from './scene.js?v=7';
+import { runLesson } from './lessons.js?v=7';
 const $ = id => document.getElementById(id);
 const el = (t, c, x, f) => { const e = document.createElement(t); if (c) e.className = c; if (x != null) e.textContent = x; if (f) e.onclick = f; return e; };
 const RANKS = [[0, 'Novato'], [100, 'Explorador'], [300, 'Aventurero'], [700, 'Viajero'], [1500, 'Maestro'], [3000, 'Leyenda']];
