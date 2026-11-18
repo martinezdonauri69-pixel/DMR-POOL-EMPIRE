@@ -42,6 +42,6 @@ function showErr(m){var e=document.getElementById('err');e.style.display='block'
 addEventListener('error',function(ev){showErr(ev.message||('No se pudo cargar '+((ev.target&&(ev.target.src||ev.target.href))||'un archivo')));},true);
 addEventListener('unhandledrejection',function(ev){showErr(String(ev.reason));});
 </script>
-<script type="module" src="js/main.js?v=5"></script>
+<script type="module" src="js/main.js?v=6"></script>
 </body>
 </html>
