@@ -93,7 +93,7 @@ export function initScene(canvas, onSwipe) {
   function show(i, dir, lk) {
     const first = !cur, old = cur; idx = i; locked = lk; cur = build(i); tint(cur, lk); sc.add(cur); tgt.set(SKY[i]); tgs.set(SEA[i]); pm.color.setHex(i === 6 ? 0x9fe8ff : i === 1 ? 0xffe0f4 : i < 3 ? 0xfff6a8 : 0xffffff);
     if (first) { bg.copy(tgt); sea.material.color.copy(tgs); return; }
-    tw = { old, t: 0, dir: dir || 1 }; cur.position.x = tw.dir * 40; cur.scale.setScalar(.6);
+    tw = { old, t: 0, dir: dir || 1 }; cur.position.x = tw.dir * 60; cur.scale.setScalar(.6);
   }
   function setLocked(lk) { locked = lk; if (cur) tint(cur, lk); }
   function dispose(g) { g.traverse(o => { if (o.isMesh) { o.geometry.dispose(); o.material.dispose(); } }); sc.remove(g); }
@@ -102,7 +102,7 @@ export function initScene(canvas, onSwipe) {
     cam.position.set(Math.sin(a) * d * .8, d * .5 + Math.sin(t * .2), Math.cos(a) * d * .8); cam.lookAt(0, 1.2, 0);
     bg.lerp(tgt, .05); sc.fog.color.copy(bg); wn.offset.x += dt * .02; wn.offset.y += dt * .012; sea.material.color.lerp(tgs, .05); hemi.color.copy(bg).lerp(new G.Color(0xffffff), .5); sc.fog.near = D * 1.1; sc.fog.far = D * 3.2;
     if (tw) { tw.t += dt / .9; const k = Math.min(1, tw.t), e = 1 - Math.pow(1 - k, 3), s = 1 + Math.sin(k * Math.PI) * .06;
-      tw.old.position.x = -tw.dir * 40 * e; tw.old.rotation.y = -tw.dir * e * .8; cur.position.x = tw.dir * 40 * (1 - e); cur.rotation.y = tw.dir * (1 - e) * .8; cur.scale.setScalar((.6 + .4 * e) * s);
+      tw.old.position.x = -tw.dir * 60 * e; tw.old.scale.setScalar(1 - .45 * e); tw.old.rotation.y = -tw.dir * e * .8; cur.position.x = tw.dir * 60 * (1 - e); cur.rotation.y = tw.dir * (1 - e) * .8; cur.scale.setScalar((.6 + .4 * e) * s);
       if (k >= 1) { dispose(tw.old); cur.position.x = 0; cur.rotation.y = 0; cur.scale.setScalar(1); tw = null; } }
     if (cur) { const A = cur.userData.A;
       A.sway.forEach(([o, p]) => { o.rotation.z = Math.sin(t * 1.4 + p) * .04; o.rotation.x = Math.cos(t * 1.1 + p) * .03; });
