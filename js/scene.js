@@ -91,8 +91,9 @@ export function initScene(canvas, onSwipe) {
   canvas.addEventListener('pointerdown', e => swipe = e.clientX);
   canvas.addEventListener('pointerup', e => { if (swipe != null && Math.abs(e.clientX - swipe) > 60) onSwipe(e.clientX < swipe ? 1 : -1); swipe = null; });
   function show(i, dir, lk) {
-    if (tw) { dispose(tw.old); if (cur) { cur.position.x = 0; cur.rotation.y = 0; cur.scale.setScalar(1); } tw = null; }
-    const first = !cur, old = cur; idx = i; locked = lk; cur = build(i); tint(cur, lk); sc.add(cur); tgt.set(SKY[i]); tgs.set(SEA[i]); pm.color.setHex(i === 6 ? 0x9fe8ff : i === 1 ? 0xffe0f4 : i < 3 ? 0xfff6a8 : 0xffffff);
+    sc.children.filter(o => o.userData && o.userData.isl && o !== cur).forEach(o => { o.traverse(m => { if (m.isMesh) { m.geometry.dispose(); m.material.dispose(); } }); sc.remove(o); });
+    if (cur) { cur.position.x = 0; cur.rotation.y = 0; cur.scale.setScalar(1); } tw = null;
+    const first = !cur, old = cur; idx = i; locked = lk; cur = build(i); cur.userData.isl = 1; tint(cur, lk); sc.add(cur); tgt.set(SKY[i]); tgs.set(SEA[i]); pm.color.setHex(i === 6 ? 0x9fe8ff : i === 1 ? 0xffe0f4 : i < 3 ? 0xfff6a8 : 0xffffff);
     if (first) { bg.copy(tgt); sea.material.color.copy(tgs); return; }
     tw = { old, t: 0, dir: dir || 1 }; cur.position.x = tw.dir * 60; cur.scale.setScalar(.6);
   }
