@@ -1,7 +1,7 @@
 import { WORLDS, LESSONS } from './data.js';
 import { S, save, resetAll, touchStreak } from './storage.js';
 import { sfx, music, speak } from './audio.js';
-import { initScene } from './scene.js';
+import { initScene } from './scene.js?v=6';
 import { runLesson } from './lessons.js';
 const $ = id => document.getElementById(id);
 const el = (t, c, x, f) => { const e = document.createElement(t); if (c) e.className = c; if (x != null) e.textContent = x; if (f) e.onclick = f; return e; };
