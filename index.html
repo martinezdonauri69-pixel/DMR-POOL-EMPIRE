@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>ENGLISH WORLD 3D</title>
+<link rel="stylesheet" href="css/style.css?v=5">
+<script type="importmap">{"imports":{"three":"https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js","three/addons/":"https://cdn.jsdelivr.net/npm/three@0.160.0/examples/jsm/"}}</script>
+</head>
+<body>
+<canvas id="c"></canvas>
+<header id="top">
+  <div class="mini">ENGLISH<b>WORLD 3D</b></div>
+  <span class="grow"></span>
+  <button class="chipb" id="tProf"><span class="av" id="tAv">P</span><span class="tx"><b id="tRank"></b><small id="tXp"></small></span></button>
+  <div class="coin" id="tCoin"></div>
+</header>
+<button class="arrow l" id="aL" aria-label="Mundo anterior">‹</button>
+<button class="arrow r" id="aR" aria-label="Mundo siguiente">›</button>
+<section id="dock">
+  <div class="info" id="info">
+    <div class="line"><span class="badge" id="wnum"></span><h2 id="wtitle"></h2><span class="badge lv" id="wlvl"></span></div>
+    <p id="wdesc"></p>
+    <div class="line meta"><span id="wmeta"></span><span class="st" id="wstat"></span></div>
+    <div class="bar"><i id="wbar"></i></div>
+    <div class="bar xp"><i id="wxp"></i></div>
+  </div>
+  <button class="play" id="bPlay">▶ JUGAR</button>
+  <nav>
+    <button id="nCont"><i>⏵</i>Continuar</button>
+    <button id="nWorlds"><i>🗺</i>Mundos</button>
+    <button id="nProf"><i>🧑</i>Perfil</button>
+    <button id="nSet"><i>⚙</i>Ajustes</button>
+  </nav>
+</section>
+<div id="fade"></div>
+<div id="lesson" class="hidden"></div>
+<div id="modal" class="hidden"><div id="box"></div></div>
+<div id="err" style="display:none;position:fixed;left:8px;right:8px;top:70px;z-index:99;background:#7a1010f0;color:#fff;padding:10px;border-radius:12px;font:13px/1.4 monospace;word-break:break-word"></div>
+<script>
+function showErr(m){var e=document.getElementById('err');e.style.display='block';e.textContent='Error: '+m;}
+addEventListener('error',function(ev){showErr(ev.message||('No se pudo cargar '+((ev.target&&(ev.target.src||ev.target.href))||'un archivo')));},true);
+addEventListener('unhandledrejection',function(ev){showErr(String(ev.reason));});
+</script>
+<script type="module" src="js/main.js?v=5"></script>
+</body>
+</html>
