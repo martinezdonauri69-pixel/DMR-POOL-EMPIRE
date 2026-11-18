@@ -69,7 +69,7 @@ export function initScene(canvas, onSwipe) {
   const sea = new G.Mesh(new G.PlaneGeometry(400, 400), new G.MeshStandardMaterial({ color: SEA[0], roughness: .2, metalness: .3 })); sea.rotation.x = -Math.PI / 2; sea.position.y = -5.5; sea.receiveShadow = true; sc.add(sea);
   const N = 140, pa = new Float32Array(N * 3).map(() => (Math.random() - .5) * 22), pg = new G.BufferGeometry(); pg.setAttribute('position', new G.BufferAttribute(pa, 3));
   const pm = new G.PointsMaterial({ color: 0xffffff, size: .22, transparent: true, opacity: .85, depthWrite: false }); sc.add(new G.Points(pg, pm));
-  let cur = null, tw = null, idx = 0, locked = false, t = 0, dock = null, last = performance.now(), swipe = null;
+  let zf = 1, zt = 1, cur = null, tw = null, idx = 0, locked = false, t = 0, dock = null, last = performance.now(), swipe = null;
   const tgt = new G.Color(SKY[0]), tgs = new G.Color(SEA[0]), gray = new G.Color(0x606880);
   const tint = (g, lk) => g.traverse(o => { if (o.isMesh) o.material.color.copy(o.userData.c).lerp(gray, lk ? .7 : 0); });
   function resize() {
@@ -88,9 +88,9 @@ export function initScene(canvas, onSwipe) {
   function setLocked(lk) { locked = lk; if (cur) tint(cur, lk); }
   function dispose(g) { g.traverse(o => { if (o.isMesh) { o.geometry.dispose(); o.material.dispose(); } }); sc.remove(g); }
   (function loop(now) {
-    const dt = Math.min(.05, (now - last) / 1000); last = now; t += dt; const d = cam.userData.d, a = Math.sin(t * .13) * .5 + .15;
+    const dt = Math.min(.05, (now - last) / 1000); last = now; t += dt; zf += (zt - zf) * .045; const D = cam.userData.d, d = D * zf, a = Math.sin(t * .13) * .5 + .15;
     cam.position.set(Math.sin(a) * d * .8, d * .5 + Math.sin(t * .2), Math.cos(a) * d * .8); cam.lookAt(0, 1.2, 0);
-    bg.lerp(tgt, .05); sea.material.color.lerp(tgs, .05); hemi.color.copy(bg).lerp(new G.Color(0xffffff), .5); sc.fog.near = d * 1.1; sc.fog.far = d * 3.2;
+    bg.lerp(tgt, .05); sea.material.color.lerp(tgs, .05); hemi.color.copy(bg).lerp(new G.Color(0xffffff), .5); sc.fog.near = D * 1.1; sc.fog.far = D * 3.2;
     if (tw) { tw.t += dt / .9; const k = Math.min(1, tw.t), e = 1 - Math.pow(1 - k, 3), s = 1 + Math.sin(k * Math.PI) * .06;
       tw.old.position.x = -tw.dir * 40 * e; tw.old.rotation.y = -tw.dir * e * .8; cur.position.x = tw.dir * 40 * (1 - e); cur.rotation.y = tw.dir * (1 - e) * .8; cur.scale.setScalar((.6 + .4 * e) * s);
       if (k >= 1) { dispose(tw.old); cur.position.x = 0; cur.rotation.y = 0; cur.scale.setScalar(1); tw = null; } }
@@ -101,5 +101,5 @@ export function initScene(canvas, onSwipe) {
     const pp = pg.attributes.position; for (let k = 0; k < N; k++) { pp.array[k * 3 + 1] += dt * .6; pp.array[k * 3] += Math.sin(t + k) * dt * .15; if (pp.array[k * 3 + 1] > 11) pp.array[k * 3 + 1] = -2; } pp.needsUpdate = true;
     r.render(sc, cam); requestAnimationFrame(loop);
   })(last);
-  return { show, setLocked, setQuality(q) { canvas.dataset.q = q; resize(); } };
+  return { zoom(on) { zt = on ? .4 : 1; }, show, setLocked, setQuality(q) { canvas.dataset.q = q; resize(); } };
 }
